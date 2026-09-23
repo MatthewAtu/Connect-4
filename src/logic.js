@@ -185,13 +185,11 @@ const bestMove = (GameState) => {
     const buttons = document.getElementsByClassName('square');
     let bestScore = -Infinity;
     let move;
-    let alpha = -Infinity; // worst possible score for max player
-    let beta = Infinity; // worst possible score for min player
     for (let index = 0; index < 7; index++) {
         const columnIndex = getLowestEmptySquare(GameState, index);
         if (columnIndex !== -1){
             GameState[columnIndex] = 'X'; 
-            let score = minimax(GameState, 8, alpha, beta, false);
+            let score = minimax(GameState, 5, false);
             GameState[columnIndex] = null; 
             if (score > bestScore){
                 bestScore = score;
@@ -204,7 +202,7 @@ const bestMove = (GameState) => {
 }
 
 //returns the score of the best path
-const minimax = (GameState, depth, alpha, beta, isMaximizing) => { //try to re-write this with your new knowledge + add depth(Score + depth)
+const minimax = (GameState, depth, isMaximizing) => { //try to re-write this with your new knowledge + add depth(Score + depth)
     let result = calculateWinner(GameState);
     if (result === 'X') {
         return scores.X + depth;
@@ -228,13 +226,9 @@ const minimax = (GameState, depth, alpha, beta, isMaximizing) => { //try to re-w
             const columnIndex = getLowestEmptySquare(GameState, index);
             if (columnIndex !== -1) {
                 GameState[columnIndex] = 'X'; 
-                let score = minimax(GameState, depth - 1, alpha, beta, false);
+                let score = minimax(GameState, depth - 1, false);
                 GameState[columnIndex] = null; 
                 bestScore = max(score, bestScore);
-                alpha = max(alpha, score);
-                if (beta <= alpha){ //check to see if min has better available move
-                    break;
-                }
             }
         }
     return bestScore;
@@ -244,13 +238,9 @@ const minimax = (GameState, depth, alpha, beta, isMaximizing) => { //try to re-w
             const columnIndex = getLowestEmptySquare(GameState, index);
             if (columnIndex !== -1){
                 GameState[columnIndex] = 'O'; 
-                let score = minimax(GameState, depth - 1, alpha, beta, true);
+                let score = minimax(GameState, depth - 1, true);
                 GameState[columnIndex] = null; 
                 bestScore = min(score, bestScore);
-                beta = min(beta, score);
-                if (beta <= alpha) { // if beta is greater than or equal to 
-                    break;
-                }
             }
         }
     return bestScore;
