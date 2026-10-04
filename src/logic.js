@@ -137,9 +137,10 @@ const evaluateBoard = (gameState) => { //how close are we to any winning positio
             if (gameState[index] === 'X'){
                 xCount++;
             } 
-            if (gameState[index] === 'O'){
+            else if (gameState[index] === 'O'){
                 oCount++;
-            } else {
+            } 
+            else {
                 emptyCount++;
             }
         }
@@ -203,6 +204,25 @@ const bestMove = (GameState) => {
     GameState[move] = 'X'; 
 }
 
+const bestMoveO = (GameState) => {
+  const buttons = document.getElementsByClassName('square');
+  let bestScore = Infinity;                       // 1. start HIGH (O wants low scores)
+  let move;
+  for (let index = 0; index < 7; index++) {
+    const columnIndex = getLowestEmptySquare(GameState, index);
+    if (columnIndex !== -1) {
+      GameState[columnIndex] = 'O';               // 2. try the move as O
+      let score = minimax(GameState, 8, -Infinity, Infinity, true);  // 3. X replies next → maximizing
+      GameState[columnIndex] = null;
+      if (score < bestScore) {                    // 4. keep the LOWEST score
+        bestScore = score;
+        move = columnIndex;
+      }
+    }
+  }
+  buttons[move].click();
+}
+
 //returns the score of the best path
 const minimax = (GameState, depth, alpha, beta, isMaximizing) => { //try to re-write this with your new knowledge + add depth(Score + depth)
     let result = calculateWinner(GameState);
@@ -258,4 +278,4 @@ const minimax = (GameState, depth, alpha, beta, isMaximizing) => { //try to re-w
 }
 
 
-export { bestMove, calculateWinner, getLowestEmptySquare };
+export { bestMove, bestMoveO, calculateWinner, getLowestEmptySquare };

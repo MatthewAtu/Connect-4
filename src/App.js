@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { bestMove, calculateWinner, getLowestEmptySquare } from './logic';
+import { bestMove, bestMoveO, calculateWinner, getLowestEmptySquare } from './logic';
 
 function Square({ value, onSquareClick }) {
   return (
@@ -52,23 +52,27 @@ function Board({ xIsNext, squares, onPlay }) {
       return;
     }
 
-    if (!xIsNext) {
-      nextSquares[index] = 'O';
-    }
+    nextSquares[index] = xIsNext ? 'X' : 'O';
 
     onPlay(nextSquares);
   }
 
-  useEffect(() =>{
-    if (xIsNext && !hasMoved.current) {
-      hasMoved.current = true;
-      bestMove(nextSquares);
-    }
+useEffect(() => {
+  // stop when the game is over
+  if (calculateWinner(squares) || !squares.includes(null)) return;
 
-    if (!xIsNext) {
-      hasMoved.current = false;
+  const timer = setTimeout(() => {
+    const board = squares.slice();          
+    if (xIsNext) {
+      bestMove(board);                       
+    } else {
+      bestMoveO(board);                     
     }
-  });
+  }, 300);                                   
+
+  return () => clearTimeout(timer);
+}, [squares, xIsNext]);
+
 
   const rowStyle = {
     display: 'flex',
@@ -168,7 +172,7 @@ export default function Game() {
         <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
       </div>
       <div className="game-info">
-        AI vs. player
+        AI vs. AI
       </div>
     </div>
   );
