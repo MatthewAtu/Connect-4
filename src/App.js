@@ -168,7 +168,8 @@ export default function Game() {
         <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
       </div>
       <div className="game-info">
-        AI vs. player
+        <button>AI vs. player</button>
+        <button>AI vs. AI</button>
       </div>
     </div>
   );

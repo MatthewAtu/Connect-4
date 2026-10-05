@@ -191,7 +191,7 @@ const bestMove = (GameState) => {
         const columnIndex = getLowestEmptySquare(GameState, index);
         if (columnIndex !== -1){
             GameState[columnIndex] = 'X'; 
-            let score = minimax(GameState, 8, alpha, beta, false);
+            let score = minimax(GameState, 7, alpha, beta, false);
             GameState[columnIndex] = null; 
             if (score > bestScore){
                 bestScore = score;
@@ -232,7 +232,7 @@ const minimax = (GameState, depth, alpha, beta, isMaximizing) => { //try to re-w
                 GameState[columnIndex] = null; 
                 bestScore = max(score, bestScore);
                 alpha = max(alpha, score);
-                if (beta <= alpha){ //check to see if min has better available move
+                if (beta <= alpha){ //min already has a better move
                     break;
                 }
             }
@@ -248,7 +248,7 @@ const minimax = (GameState, depth, alpha, beta, isMaximizing) => { //try to re-w
                 GameState[columnIndex] = null; 
                 bestScore = min(score, bestScore);
                 beta = min(beta, score);
-                if (beta <= alpha) { // if beta is greater than or equal to 
+                if (beta <= alpha) { //min has a better option
                     break;
                 }
             }
