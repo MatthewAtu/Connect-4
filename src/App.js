@@ -36,7 +36,7 @@ const contains = (Array, value) => {
   return false;
 };
 
-function Board({ xIsNext, squares, onPlay, xDepth, oDepth }) {
+function Board({ xIsNext, squares, onPlay, xDepth, oDepth, isRunning }) {
   const nextSquares = squares.slice();
   const hasMoved = useRef(false);
   function handleClick(i) {
@@ -60,6 +60,7 @@ function Board({ xIsNext, squares, onPlay, xDepth, oDepth }) {
 
   useEffect(() => {
     // stop when the game is over
+    if (!isRunning) return; // wait for Start
     if (calculateWinner(squares) || !squares.includes(null)) return;
 
     const timer = setTimeout(() => {
@@ -72,7 +73,7 @@ function Board({ xIsNext, squares, onPlay, xDepth, oDepth }) {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [squares, xIsNext, xDepth, oDepth]);
+  }, [squares, xIsNext, xDepth, oDepth, isRunning]);
 
   const rowStyle = {
     display: "flex",
@@ -156,10 +157,20 @@ export default function Game() {
   const [currentMove, setCurrentMove] = useState(0);
   const [xDepth, setXDepth] = useState(4);
   const [oDepth, setODepth] = useState(4);
+  const [isRunning, setIsRunning] = useState(false);
   //if the number is even it is X's Turn
   // if this is true then it is the AI's Turn to
   const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
+
+  const gameOver = calculateWinner(currentSquares) || !currentSquares.includes(null);
+
+  // clear the board; keepRunning = true starts the next game right away
+  function newGame(keepRunning) {
+    setHistory([Array(42).fill(null)]);
+    setCurrentMove(0);
+    setIsRunning(keepRunning);
+  }
 
   function handlePlay(nextSquares) {
     const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
@@ -176,10 +187,18 @@ export default function Game() {
           onPlay={handlePlay}
           xDepth={xDepth}
           oDepth={oDepth}
+          isRunning={isRunning}
         />{" "}
       </div>
       <div className="game-info">
         <div>AI vs. AI</div>
+        <div>
+          <button onClick={() => setIsRunning(true)} disabled={isRunning || gameOver}>
+            Start
+          </button>
+          <button onClick={() => newGame(false)}>Reset</button>
+          {gameOver && <button onClick={() => newGame(true)}>Play again</button>}
+        </div>
         <label>
           X depth:{" "}
           <select value={xDepth} onChange={(e) => setXDepth(Number(e.target.value))}>
