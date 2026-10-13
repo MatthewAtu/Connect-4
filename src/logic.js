@@ -182,7 +182,7 @@ const getLowestEmptySquare = (squares, column) => {
 }
 
 //makes the best move on the board
-const bestMove = (GameState) => {
+const bestMove = (GameState, depth) => {
     const buttons = document.getElementsByClassName('square');
     let bestScore = -Infinity;
     let move;
@@ -192,7 +192,7 @@ const bestMove = (GameState) => {
         const columnIndex = getLowestEmptySquare(GameState, index);
         if (columnIndex !== -1){
             GameState[columnIndex] = 'X'; 
-            let score = minimax(GameState, 8, alpha, beta, false);
+            let score = minimax(GameState, depth, alpha, beta, false);
             GameState[columnIndex] = null; 
             if (score > bestScore){
                 bestScore = score;
@@ -204,7 +204,7 @@ const bestMove = (GameState) => {
     GameState[move] = 'X'; 
 }
 
-const bestMoveO = (GameState) => {
+const bestMoveO = (GameState, depth) => {
   const buttons = document.getElementsByClassName('square');
   let bestScore = Infinity;                       // 1. start HIGH (O wants low scores)
   let move;
@@ -212,7 +212,7 @@ const bestMoveO = (GameState) => {
     const columnIndex = getLowestEmptySquare(GameState, index);
     if (columnIndex !== -1) {
       GameState[columnIndex] = 'O';               // 2. try the move as O
-      let score = minimax(GameState, 8, -Infinity, Infinity, true);  // 3. X replies next → maximizing
+      let score = minimax(GameState, depth, -Infinity, Infinity, true);  // 3. X replies next → maximizing
       GameState[columnIndex] = null;
       if (score < bestScore) {                    // 4. keep the LOWEST score
         bestScore = score;

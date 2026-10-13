@@ -1,25 +1,25 @@
-import { useState, useEffect, useRef } from 'react';
-import { bestMove, bestMoveO, calculateWinner, getLowestEmptySquare } from './logic';
+import { useState, useEffect, useRef } from "react";
+import { bestMove, bestMoveO, calculateWinner, getLowestEmptySquare } from "./logic";
 
 function Square({ value, onSquareClick }) {
   return (
-    <button 
-      className="square" 
-      onClick={onSquareClick}     
+    <button
+      className="square"
+      onClick={onSquareClick}
       style={{
-        width: '50px',
-        height: '50px',
-        minWidth: '50px',
-        maxWidth: '50px',
-        minHeight: '50px',
-        maxHeight: '50px',
+        width: "50px",
+        height: "50px",
+        minWidth: "50px",
+        maxWidth: "50px",
+        minHeight: "50px",
+        maxHeight: "50px",
         padding: 0,
         margin: 0,
-        boxSizing: 'border-box',
-        border: '1px solid black',
+        boxSizing: "border-box",
+        border: "1px solid black",
         borderRadius: 0,
-        fontSize: '24px',
-        flex: '0 0 50px'
+        fontSize: "24px",
+        flex: "0 0 50px",
       }}
     >
       {value}
@@ -29,17 +29,18 @@ function Square({ value, onSquareClick }) {
 
 const contains = (Array, value) => {
   for (let i = 0; i < Array.length; i++) {
-    if(Array[i] === value){
+    if (Array[i] === value) {
       return true;
     }
   }
   return false;
-}
+};
 
-function Board({ xIsNext, squares, onPlay }) {
+function Board({ xIsNext, squares, onPlay, xDepth, oDepth }) {
   const nextSquares = squares.slice();
   const hasMoved = useRef(false);
-  function handleClick(i) {//get the index of the clicked square and place the corresponting shape there
+  function handleClick(i) {
+    //get the index of the clicked square and place the corresponting shape there
     const column = i % 7;
     if (calculateWinner(squares)) {
       return;
@@ -47,48 +48,47 @@ function Board({ xIsNext, squares, onPlay }) {
 
     const index = getLowestEmptySquare(nextSquares, column);
 
-    if (index === -1){
+    if (index === -1) {
       alert("Row is Full");
       return;
     }
 
-    nextSquares[index] = xIsNext ? 'X' : 'O';
+    nextSquares[index] = xIsNext ? "X" : "O";
 
     onPlay(nextSquares);
   }
 
-useEffect(() => {
-  // stop when the game is over
-  if (calculateWinner(squares) || !squares.includes(null)) return;
+  useEffect(() => {
+    // stop when the game is over
+    if (calculateWinner(squares) || !squares.includes(null)) return;
 
-  const timer = setTimeout(() => {
-    const board = squares.slice();          
-    if (xIsNext) {
-      bestMove(board);                       
-    } else {
-      bestMoveO(board);                     
-    }
-  }, 300);                                   
+    const timer = setTimeout(() => {
+      const board = squares.slice();
+      if (xIsNext) {
+        bestMove(board, xDepth);
+      } else {
+        bestMoveO(board, oDepth);
+      }
+    }, 300);
 
-  return () => clearTimeout(timer);
-}, [squares, xIsNext]);
-
+    return () => clearTimeout(timer);
+  }, [squares, xIsNext, xDepth, oDepth]);
 
   const rowStyle = {
-    display: 'flex',
-    width: '350px',
-    height: '50px'
+    display: "flex",
+    width: "350px",
+    height: "50px",
   };
 
   const winner = calculateWinner(squares);
   let status;
   if (winner) {
-    status = 'Winner: ' + winner;
+    status = "Winner: " + winner;
   } else if (!contains(squares, null)) {
-    status = 'Tie';
+    status = "Tie";
   } else {
-    status = 'Next player: ' + (xIsNext ? 'X' : 'O');
-  } 
+    status = "Next player: " + (xIsNext ? "X" : "O");
+  }
 
   return (
     <>
@@ -154,6 +154,8 @@ useEffect(() => {
 export default function Game() {
   const [history, setHistory] = useState([Array(42).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
+  const [xDepth, setXDepth] = useState(4);
+  const [oDepth, setODepth] = useState(4);
   //if the number is even it is X's Turn
   // if this is true then it is the AI's Turn to
   const xIsNext = currentMove % 2 === 0;
@@ -164,15 +166,41 @@ export default function Game() {
     setHistory(nextHistory);
     setCurrentMove(nextHistory.length - 1);
   }
-  
 
   return (
     <div className="game">
       <div className="game-board">
-        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+        <Board
+          xIsNext={xIsNext}
+          squares={currentSquares}
+          onPlay={handlePlay}
+          xDepth={xDepth}
+          oDepth={oDepth}
+        />{" "}
       </div>
       <div className="game-info">
-        AI vs. AI
+        <div>AI vs. AI</div>
+        <label>
+          X depth:{" "}
+          <select value={xDepth} onChange={(e) => setXDepth(Number(e.target.value))}>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          {" "}
+          O depth:{" "}
+          <select value={oDepth} onChange={(e) => setODepth(Number(e.target.value))}>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
     </div>
   );
