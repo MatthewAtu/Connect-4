@@ -126,6 +126,7 @@ const max = (val1, val2) => {
     }
 }
 
+// heurstic evaluation function to assess the board state and return a score
 const evaluateBoard = (gameState) => { //how close are we to any winning positions
     let score = 0;
     for (const line of lines){
@@ -181,8 +182,16 @@ const getLowestEmptySquare = (squares, column) => {
     return -1;
 }
 
+// Runs whichever search is selected: Alpha-Beta (usePruning = true) or plain Minimax (false)
+const search = (GameState, depth, isMaximizing, usePruning) => {
+    if (usePruning) {
+        return minimax(GameState, depth, -Infinity, Infinity, isMaximizing);
+    }
+    return minimaxNoPruning(GameState, depth, isMaximizing);
+}
+
 //makes the best move on the board
-const bestMove = (GameState, depth) => {
+const bestMove = (GameState, depth, usePruning) => {
     const buttons = document.getElementsByClassName('square');
     let bestScore = -Infinity;
     let move;
@@ -192,7 +201,7 @@ const bestMove = (GameState, depth) => {
         const columnIndex = getLowestEmptySquare(GameState, index);
         if (columnIndex !== -1){
             GameState[columnIndex] = 'X'; 
-            let score = minimax(GameState, depth, alpha, beta, false);
+            let score = search(GameState, depth, false, usePruning);
             GameState[columnIndex] = null; 
             if (score > bestScore){
                 bestScore = score;
@@ -204,7 +213,7 @@ const bestMove = (GameState, depth) => {
     GameState[move] = 'X'; 
 }
 
-const bestMoveO = (GameState, depth) => {
+const bestMoveO = (GameState, depth, usePruning) => {
   const buttons = document.getElementsByClassName('square');
   let bestScore = Infinity;                       // 1. start HIGH (O wants low scores)
   let move;
@@ -212,7 +221,7 @@ const bestMoveO = (GameState, depth) => {
     const columnIndex = getLowestEmptySquare(GameState, index);
     if (columnIndex !== -1) {
       GameState[columnIndex] = 'O';               // 2. try the move as O
-      let score = minimax(GameState, depth, -Infinity, Infinity, true);  // 3. X replies next → maximizing
+      let score = search(GameState, depth, true, usePruning);  // 3. X replies next → maximizing
       GameState[columnIndex] = null;
       if (score < bestScore) {                    // 4. keep the LOWEST score
         bestScore = score;
@@ -225,6 +234,7 @@ const bestMoveO = (GameState, depth) => {
 
 //returns the score of the best path
 const minimax = (GameState, depth, alpha, beta, isMaximizing) => { //try to re-write this with your new knowledge + add depth(Score + depth)
+    // Base case: check for a winner or tie
     let result = calculateWinner(GameState);
     if (result === 'X') {
         return scores.X + depth;
@@ -242,6 +252,7 @@ const minimax = (GameState, depth, alpha, beta, isMaximizing) => { //try to re-w
         return evaluateBoard(GameState);
     }
     
+    // Recursive case: maximize or minimize the score
     if (isMaximizing){
         let bestScore = -Infinity;
         for (let index = 0; index < 7; index++) {
@@ -276,6 +287,49 @@ const minimax = (GameState, depth, alpha, beta, isMaximizing) => { //try to re-w
     return bestScore;
     }
 }
+
+// Plain Minimax: same as minimax, but searches every branch (no alpha-beta)
+const minimaxNoPruning = (GameState, depth, isMaximizing) => {
+    let result = calculateWinner(GameState);
+    if (result === 'X') {
+        return scores.X + depth;
+    }
+    if (result === 'O') {
+        return scores.O - depth;
+    }
+    if (!GameState.includes(null)) {
+        return scores.tie;
+    }
+    if (depth === 0) {
+        return evaluateBoard(GameState);
+    }
+
+    if (isMaximizing) {
+        let bestScore = -Infinity;
+        for (let index = 0; index < 7; index++) {
+            const columnIndex = getLowestEmptySquare(GameState, index);
+            if (columnIndex !== -1) {
+                GameState[columnIndex] = 'X';
+                let score = minimaxNoPruning(GameState, depth - 1, false);
+                GameState[columnIndex] = null;
+                bestScore = max(score, bestScore);
+            }
+        }
+        return bestScore;
+    } else {
+        let bestScore = Infinity;
+        for (let index = 0; index < 7; index++) {
+            const columnIndex = getLowestEmptySquare(GameState, index);
+            if (columnIndex !== -1) {
+                GameState[columnIndex] = 'O';
+                let score = minimaxNoPruning(GameState, depth - 1, true);
+                GameState[columnIndex] = null;
+                bestScore = min(score, bestScore);
+            }
+        }
+        return bestScore;
+    }
+};
 
 
 export { bestMove, bestMoveO, calculateWinner, getLowestEmptySquare };

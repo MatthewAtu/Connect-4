@@ -36,7 +36,7 @@ const contains = (Array, value) => {
   return false;
 };
 
-function Board({ xIsNext, squares, onPlay, xDepth, oDepth, isRunning }) {
+function Board({ xIsNext, squares, onPlay, xDepth, oDepth, xPruning, oPruning, isRunning }) {
   const nextSquares = squares.slice();
   const hasMoved = useRef(false);
   function handleClick(i) {
@@ -66,14 +66,14 @@ function Board({ xIsNext, squares, onPlay, xDepth, oDepth, isRunning }) {
     const timer = setTimeout(() => {
       const board = squares.slice();
       if (xIsNext) {
-        bestMove(board, xDepth);
+        bestMove(board, xDepth, xPruning);
       } else {
-        bestMoveO(board, oDepth);
+        bestMoveO(board, oDepth, oPruning);
       }
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [squares, xIsNext, xDepth, oDepth, isRunning]);
+  }, [squares, xIsNext, xDepth, oDepth, xPruning, oPruning, isRunning]);
 
   const rowStyle = {
     display: "flex",
@@ -158,6 +158,8 @@ export default function Game() {
   const [xDepth, setXDepth] = useState(4);
   const [oDepth, setODepth] = useState(4);
   const [isRunning, setIsRunning] = useState(false);
+  const [xPruning, setXPruning] = useState(true); // true = Alpha-Beta, false = plain Minimax
+  const [oPruning, setOPruning] = useState(true);
   //if the number is even it is X's Turn
   // if this is true then it is the AI's Turn to
   const xIsNext = currentMove % 2 === 0;
@@ -187,6 +189,8 @@ export default function Game() {
           onPlay={handlePlay}
           xDepth={xDepth}
           oDepth={oDepth}
+          xPruning={xPruning}
+          oPruning={oPruning}
           isRunning={isRunning}
         />{" "}
       </div>
@@ -220,6 +224,22 @@ export default function Game() {
             ))}
           </select>
         </label>
+        <div>
+          <label>
+            X algorithm:{" "}
+            <select value={xPruning ? "ab" : "mm"} onChange={(e) => setXPruning(e.target.value === "ab")}>
+              <option value="ab">Alpha-Beta</option>
+              <option value="mm">Minimax (no pruning)</option>
+            </select>
+          </label>
+          <label>
+            {" "}O algorithm:{" "}
+            <select value={oPruning ? "ab" : "mm"} onChange={(e) => setOPruning(e.target.value === "ab")}>
+              <option value="ab">Alpha-Beta</option>
+              <option value="mm">Minimax (no pruning)</option>
+            </select>
+          </label>
+        </div>        
       </div>
     </div>
   );
