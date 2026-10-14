@@ -110,6 +110,8 @@ const scores = {
     tie: 0
 }
 
+let nodesExamined = 0;   // boards looked at during the current move
+
 const min = (val1, val2) => {
     if (val1 < val2) {
         return val1;
@@ -197,6 +199,9 @@ const bestMove = (GameState, depth, usePruning) => {
     let move;
     let alpha = -Infinity; // worst possible score for max player
     let beta = Infinity; // worst possible score for min player
+    //reset the nodes examined counter for this move
+    nodesExamined = 0;
+    const start = performance.now();
     for (let index = 0; index < 7; index++) {
         const columnIndex = getLowestEmptySquare(GameState, index);
         if (columnIndex !== -1){
@@ -209,7 +214,11 @@ const bestMove = (GameState, depth, usePruning) => {
             }
         }
     }
+    // log the results of the search
+    const ms = performance.now() - start;
+    console.log(`X | ${usePruning ? 'Alpha-Beta' : 'Minimax'} | depth ${depth} | column ${move % 7} | ${nodesExamined} boards | ${ms.toFixed(1)} ms`);
     buttons[move].click();
+    // make the best move on the board
     GameState[move] = 'X'; 
 }
 
@@ -217,6 +226,9 @@ const bestMoveO = (GameState, depth, usePruning) => {
   const buttons = document.getElementsByClassName('square');
   let bestScore = Infinity;                       // 1. start HIGH (O wants low scores)
   let move;
+
+  nodesExamined = 0;   // reset the nodes examined counter for this move
+  const start = performance.now();
   for (let index = 0; index < 7; index++) {
     const columnIndex = getLowestEmptySquare(GameState, index);
     if (columnIndex !== -1) {
@@ -229,11 +241,14 @@ const bestMoveO = (GameState, depth, usePruning) => {
       }
     }
   }
+  const ms = performance.now() - start;
+  console.log(`O | ${usePruning ? 'Alpha-Beta' : 'Minimax'} | depth ${depth} | column ${move % 7} | ${nodesExamined} boards | ${ms.toFixed(1)} ms`);
   buttons[move].click();
 }
 
 //returns the score of the best path
 const minimax = (GameState, depth, alpha, beta, isMaximizing) => { //try to re-write this with your new knowledge + add depth(Score + depth)
+    nodesExamined++;
     // Base case: check for a winner or tie
     let result = calculateWinner(GameState);
     if (result === 'X') {
@@ -290,6 +305,7 @@ const minimax = (GameState, depth, alpha, beta, isMaximizing) => { //try to re-w
 
 // Plain Minimax: same as minimax, but searches every branch (no alpha-beta)
 const minimaxNoPruning = (GameState, depth, isMaximizing) => {
+    nodesExamined++;
     let result = calculateWinner(GameState);
     if (result === 'X') {
         return scores.X + depth;
