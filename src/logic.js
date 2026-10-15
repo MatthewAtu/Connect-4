@@ -111,6 +111,7 @@ const scores = {
 }
 
 let nodesExamined = 0;   // boards looked at during the current move
+let branchesPruned = 0;  // times Alpha-Beta cut off a branch during the current move
 
 const min = (val1, val2) => {
     if (val1 < val2) {
@@ -185,9 +186,9 @@ const getLowestEmptySquare = (squares, column) => {
 }
 
 // Runs whichever search is selected: Alpha-Beta (usePruning = true) or plain Minimax (false)
-const search = (GameState, depth, isMaximizing, usePruning) => {
+const search = (GameState, depth, isMaximizing, usePruning, alpha, beta) => {
     if (usePruning) {
-        return minimax(GameState, depth, -Infinity, Infinity, isMaximizing);
+        return minimax(GameState, depth, alpha, beta, isMaximizing);
     }
     return minimaxNoPruning(GameState, depth, isMaximizing);
 }
@@ -201,17 +202,23 @@ const chooseMove = (GameState, player, depth, usePruning) => {
     let beta = Infinity;   // best score O is guaranteed so far
 
     nodesExamined = 0;
+    branchesPruned = 0;
     const start = performance.now();
 
     for (let index = 0; index < 7; index++) {
         const columnIndex = getLowestEmptySquare(GameState, index);
         if (columnIndex !== -1) {
             GameState[columnIndex] = player;
-            const score = search(GameState, depth - 1, !isX, usePruning);
+            const score = search(GameState, depth - 1, !isX, usePruning, alpha, beta);
             GameState[columnIndex] = null;
             if ((isX && score > bestScore) || (!isX && score < bestScore)) {
                 bestScore = score;
                 move = columnIndex;
+            }
+            if (isX) {
+                alpha = max(alpha, score);
+            } else {
+                beta = min(beta, score);
             }
         }
     }
@@ -220,6 +227,7 @@ const chooseMove = (GameState, player, depth, usePruning) => {
         move,                              // cell 0–41
         boardsExamined: nodesExamined,
         timeMs: performance.now() - start,
+        branchesPruned
     };
 };
 
@@ -323,6 +331,7 @@ const minimax = (GameState, depth, alpha, beta, isMaximizing) => { //try to re-w
                 bestScore = max(score, bestScore);
                 alpha = max(alpha, score);
                 if (beta <= alpha){ //check to see if min has better available move
+                    branchesPruned++;
                     break;
                 }
             }
@@ -339,6 +348,7 @@ const minimax = (GameState, depth, alpha, beta, isMaximizing) => { //try to re-w
                 bestScore = min(score, bestScore);
                 beta = min(beta, score);
                 if (beta <= alpha) { // if beta is greater than or equal to 
+                    branchesPruned++;
                     break;
                 }
             }
@@ -392,4 +402,4 @@ const minimaxNoPruning = (GameState, depth, isMaximizing) => {
 };
 
 
-export { bestMove, bestMoveO, calculateWinner, getLowestEmptySquare };
+export { bestMove, bestMoveO, calculateWinner, getLowestEmptySquare, chooseMove};
