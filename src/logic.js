@@ -192,59 +192,103 @@ const search = (GameState, depth, isMaximizing, usePruning) => {
     return minimaxNoPruning(GameState, depth, isMaximizing);
 }
 
-//makes the best move on the board
-const bestMove = (GameState, depth, usePruning) => {
-    const buttons = document.getElementsByClassName('square');
-    let bestScore = -Infinity;
-    let move;
-    let alpha = -Infinity; // worst possible score for max player
-    let beta = Infinity; // worst possible score for min player
-    //reset the nodes examined counter for this move
+
+const chooseMove = (GameState, player, depth, usePruning) => {
+    const isX = player === 'X';
+    let bestScore = isX ? -Infinity : Infinity;
+    let move = null;
+    let alpha = -Infinity; // best score X is guaranteed so far (shared across the 7 columns)
+    let beta = Infinity;   // best score O is guaranteed so far
+
     nodesExamined = 0;
     const start = performance.now();
+
     for (let index = 0; index < 7; index++) {
         const columnIndex = getLowestEmptySquare(GameState, index);
-        if (columnIndex !== -1){
-            GameState[columnIndex] = 'X'; 
-            let score = search(GameState, depth, false, usePruning);
-            GameState[columnIndex] = null; 
-            if (score > bestScore){
+        if (columnIndex !== -1) {
+            GameState[columnIndex] = player;
+            const score = search(GameState, depth - 1, !isX, usePruning);
+            GameState[columnIndex] = null;
+            if ((isX && score > bestScore) || (!isX && score < bestScore)) {
                 bestScore = score;
                 move = columnIndex;
             }
         }
     }
-    // log the results of the search
-    const ms = performance.now() - start;
-    console.log(`X | ${usePruning ? 'Alpha-Beta' : 'Minimax'} | depth ${depth} | column ${move % 7} | ${nodesExamined} boards | ${ms.toFixed(1)} ms`);
-    buttons[move].click();
-    // make the best move on the board
-    GameState[move] = 'X'; 
-}
+
+    return {
+        move,                              // cell 0–41
+        boardsExamined: nodesExamined,
+        timeMs: performance.now() - start,
+    };
+};
+
+
+const bestMove = (GameState, depth, usePruning) => {
+    const result = chooseMove(GameState, 'X', depth, usePruning);
+    console.log(`X | ${usePruning ? 'Alpha-Beta' : 'Minimax'} | depth ${depth} | ${result.boardsExamined} boards | ${result.timeMs.toFixed(1)} ms`);
+    document.getElementsByClassName('square')[result.move].click();
+};
 
 const bestMoveO = (GameState, depth, usePruning) => {
-  const buttons = document.getElementsByClassName('square');
-  let bestScore = Infinity;                       // 1. start HIGH (O wants low scores)
-  let move;
+    const result = chooseMove(GameState, 'O', depth, usePruning);
+    console.log(`O | ${usePruning ? 'Alpha-Beta' : 'Minimax'} | depth ${depth} | ${result.boardsExamined} boards | ${result.timeMs.toFixed(1)} ms`);
+    document.getElementsByClassName('square')[result.move].click();
+};
 
-  nodesExamined = 0;   // reset the nodes examined counter for this move
-  const start = performance.now();
-  for (let index = 0; index < 7; index++) {
-    const columnIndex = getLowestEmptySquare(GameState, index);
-    if (columnIndex !== -1) {
-      GameState[columnIndex] = 'O';               // 2. try the move as O
-      let score = search(GameState, depth, true, usePruning);  // 3. X replies next → maximizing
-      GameState[columnIndex] = null;
-      if (score < bestScore) {                    // 4. keep the LOWEST score
-        bestScore = score;
-        move = columnIndex;
-      }
-    }
-  }
-  const ms = performance.now() - start;
-  console.log(`O | ${usePruning ? 'Alpha-Beta' : 'Minimax'} | depth ${depth} | column ${move % 7} | ${nodesExamined} boards | ${ms.toFixed(1)} ms`);
-  buttons[move].click();
-}
+// //makes the best move on the board
+// const bestMove = (GameState, depth, usePruning) => {
+//     const buttons = document.getElementsByClassName('square');
+//     let bestScore = -Infinity;
+//     let move;
+//     let alpha = -Infinity; // worst possible score for max player
+//     let beta = Infinity; // worst possible score for min player
+//     //reset the nodes examined counter for this move
+//     nodesExamined = 0;
+//     const start = performance.now();
+//     for (let index = 0; index < 7; index++) {
+//         const columnIndex = getLowestEmptySquare(GameState, index);
+//         if (columnIndex !== -1){
+//             GameState[columnIndex] = 'X'; 
+//             let score = search(GameState, depth, false, usePruning);
+//             GameState[columnIndex] = null; 
+//             if (score > bestScore){
+//                 bestScore = score;
+//                 move = columnIndex;
+//             }
+//         }
+//     }
+//     // log the results of the search
+//     const ms = performance.now() - start;
+//     console.log(`X | ${usePruning ? 'Alpha-Beta' : 'Minimax'} | depth ${depth} | column ${move % 7} | ${nodesExamined} boards | ${ms.toFixed(1)} ms`);
+//     buttons[move].click();
+//     // make the best move on the board
+//     GameState[move] = 'X'; 
+// }
+
+// const bestMoveO = (GameState, depth, usePruning) => {
+//   const buttons = document.getElementsByClassName('square');
+//   let bestScore = Infinity;                       // 1. start HIGH (O wants low scores)
+//   let move;
+
+//   nodesExamined = 0;   // reset the nodes examined counter for this move
+//   const start = performance.now();
+//   for (let index = 0; index < 7; index++) {
+//     const columnIndex = getLowestEmptySquare(GameState, index);
+//     if (columnIndex !== -1) {
+//       GameState[columnIndex] = 'O';               // 2. try the move as O
+//       let score = search(GameState, depth, true, usePruning);  // 3. X replies next → maximizing
+//       GameState[columnIndex] = null;
+//       if (score < bestScore) {                    // 4. keep the LOWEST score
+//         bestScore = score;
+//         move = columnIndex;
+//       }
+//     }
+//   }
+//   const ms = performance.now() - start;
+//   console.log(`O | ${usePruning ? 'Alpha-Beta' : 'Minimax'} | depth ${depth} | column ${move % 7} | ${nodesExamined} boards | ${ms.toFixed(1)} ms`);
+//   buttons[move].click();
+// }
 
 //returns the score of the best path
 const minimax = (GameState, depth, alpha, beta, isMaximizing) => { //try to re-write this with your new knowledge + add depth(Score + depth)
