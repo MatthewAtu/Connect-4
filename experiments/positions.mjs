@@ -43,9 +43,9 @@ function boardToPicture(board) {
 // How many positions from each stage of the game, and how many moves deep each stage is.
 // Even move counts only, so it is always X's turn.
 const stages = [
-  { name: 'early', count: 13, minMoves: 4,  maxMoves: 10 },
-  { name: 'mid',   count: 14, minMoves: 12, maxMoves: 20 },
-  { name: 'late',  count: 13, minMoves: 22, maxMoves: 30 },
+  { name: 'early', count: 15, minMoves: 4,  maxMoves: 10 },
+  { name: 'mid',   count: 15, minMoves: 12, maxMoves: 20 },
+  { name: 'late',  count: 15, minMoves: 22, maxMoves: 30 },
 ];
 
 // const random = seededRandom(3720);
